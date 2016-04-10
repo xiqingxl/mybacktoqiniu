@@ -13,9 +13,9 @@ MYSQL_SERVER="127.0.0.1"
 # Mysql用户名
 MYSQL_USER="root"
 # Mysql密码
-MYSQL_PASS="99go99.com"
+MYSQL_PASS="******"
 # Mysql备份数据库，多个请空格分隔
-MYSQL_DBS="63a kuaixinda qinbangong utelcn xinchaoyue"
+MYSQL_DBS="×× ××"
 # 备份文件临时存放目录，一般不需要更改
 BACKUP_DIR="/tmp/backuptoqiniu"
 # 备份文件压缩密码
@@ -28,9 +28,9 @@ BACKUP_FILE_PASSWD="hello"
 #存放空间
 QINIU_BUCKET="vpsbackup"
 #ACCESS_KEY
-QINIU_ACCESS_KEY="QY38CRk0EndUP2w9C6JC2SHN0Wnxvu1B3OcH1loo"
+QINIU_ACCESS_KEY=""
 #SECRET_KEY
-QINIU_SECRET_KEY="pcfk8s8Zc0a3fMXMnCxCxoRQXNlfzl7O4E7wFltz"
+QINIU_SECRET_KEY=""
 
 ## 七牛配置信息 End ##
 
