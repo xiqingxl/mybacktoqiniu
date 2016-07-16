@@ -1,65 +1,58 @@
 #!/bin/bash
-#author:ccbikai
-#web:http://miantiao.me
+#Author:ZhangGe
+#Des:Backup database and webfile.
+#Date:2014-8-28
+TODAY=`date +%u`
 
-## 备份配置信息 ##
+if [ -z $1 ];then
+        echo Needed Usage arguments. Please Use --help to get more infomation.
+        exit 1
+fi
 
-# 备份名称，用于标记
-BACKUP_NAME="qiniu-backup"
-# 备份目录，多个请空格分隔
-BACKUP_SRC="/data/www"
-# Mysql主机地址
-MYSQL_SERVER="127.0.0.1"
-# Mysql用户名
-MYSQL_USER="root"
-# Mysql密码
-MYSQL_PASS="******"
-# Mysql备份数据库，多个请空格分隔
-MYSQL_DBS="×× ××"
-# 备份文件临时存放目录，一般不需要更改
-BACKUP_DIR="/tmp/backuptoqiniu"
-# 备份文件压缩密码
-BACKUP_FILE_PASSWD="hello"
+if [ "$1" == "db" ];then
+        domain=$2
+        dbname=$3
+        mysqluser=$4
+        mysqlpd=$5
+        back_path=$6
+        test -d $back_path || (mkdir -p $back_path || echo "$back_path not found! Please CheckOut Or feedback to zhangge.net..." && exit 2)
+        cd $back_path
+        mysqldump -u$mysqluser -p$mysqlpd $dbname>$back_path/$domain\_db_$TODAY\.sql
+        test -f $back_path/$domain\_db_$TODAY\.sql || (echo "MysqlDump failed! Please CheckOut Or feedback to zhangge.net..." && exit 2)
+        zip --version >/dev/null && zip -m $back_path/$domain\_db_$TODAY\.zip $domain\_db_$TODAY\.sql || tar cvzf $back_path/$domain\_db_$TODAY\.tar.gz $domain\_db_$TODAY\.sql --remove-files
 
-## 备份配置信息 End ##
+elif [ "$1" == "file" ];then
+        domain=$2
+        site_path=$3
+        back_path=$4
+        test -d $site_path || (echo "$site_path not found! Please CheckOut Or feedback to zhangge.net..." && exit 2)
+        test -d $back_path || (mkdir -p $back_path || echo "$back_path not found! Please CheckOut Or feedback to zhangge.net..." && exit 2)
+        test -f $back_path/$domain\_$TODAY\.zip && rm -f $back_path/$domain\_$TODAY\.zip
+        zip --version >/dev/null && zip -9r $back_path/$domain\_$TODAY\.zip $site_path || tar cvzf $back_path/$domain\_$TODAY\.tar.gz $site_path
 
-## 七牛配置信息 ##
-
-#存放空间
-QINIU_BUCKET="vpsbackup"
-#ACCESS_KEY
-QINIU_ACCESS_KEY=""
-#SECRET_KEY
-QINIU_SECRET_KEY=""
-
-## 七牛配置信息 End ##
-
-
-
-## Funs ##
-NOW=$(date +"%Y%m%d%H%M%S") #精确到秒，统一秒内上传的文件会被覆盖
-
-mkdir -p $BACKUP_DIR
-
-# 备份Mysql
-echo "start dump mysql"
-for db_name in $MYSQL_DBS
-do
-	mysqldump -u $MYSQL_USER -h $MYSQL_SERVER -p$MYSQL_PASS $db_name > "$BACKUP_DIR/$BACKUP_NAME-$db_name.sql"
-done
-echo "dump ok"
-
-# 打包
-echo "start tar"
-BACKUP_FILENAME="$BACKUP_NAME-backup-$NOW.zip"
-zip -q -r -P $BACKUP_FILE_PASSWD $BACKUP_DIR/$BACKUP_FILENAME $BACKUP_DIR/*.sql $BACKUP_SRC
-echo "tar ok"
-
-# 上传
-echo "start upload"
-ruby $(dirname $0)/upload.rb -a $QINIU_ACCESS_KEY,$QINIU_SECRET_KEY,$QINIU_BUCKET,$BACKUP_DIR/$BACKUP_FILENAME
-echo "upload ok"
-
-# 清理备份文件
-rm -rf $BACKUP_DIR
-echo "backup clean done"
+elif [ "$1" == "--help" ];then
+        clear
+        echo =====================================Help infomation=========================================
+        echo 1. Use For Backup database:
+        echo The \$1 must be \[db\]
+        echo \$2: \[domain\]
+        echo \$3: \[dbname\]
+        echo \$4: \[mysqluser\]
+        echo \$5: \[mysqlpassword\]
+        echo \$6: \[back_path\]
+        echo
+        echo For example:./backup.sh db zhangge.net zhangge_db zhangge 123456 /home/wwwbackup/zhangge.net
+        echo
+        echo 2. Use For Backup webfile:
+        echo The \$1 must be [\file\]:
+        echo \$2: \[domain\]
+        echo \$3: \[site_path\]
+        echo \$4: \[back_path\]
+        echo
+        echo For example:./backup.sh file zhangge.net /home/wwwroot/zhangge.net /home/wwwbackup/zhangge.net
+        echo =====================================End of Hlep==============================================
+        exit 0
+else
+        echo "Error!Please Usage --help to get help infomation!"
+        exit 2
+fi
